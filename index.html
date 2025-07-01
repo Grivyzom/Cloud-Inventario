@@ -13,6 +13,8 @@
                         'fade-in': 'fadeIn 0.5s ease-in-out',
                         'slide-up': 'slideUp 0.3s ease-out',
                         'pulse-slow': 'pulse 3s infinite',
+                        'slide-in-right': 'slideInRight 0.5s ease-out',
+                        'slide-in-left': 'slideInLeft 0.5s ease-out',
                     },
                     keyframes: {
                         fadeIn: {
@@ -22,6 +24,14 @@
                         slideUp: {
                             '0%': { opacity: '0', transform: 'translateY(20px)' },
                             '100%': { opacity: '1', transform: 'translateY(0)' }
+                        },
+                        slideInRight: {
+                            '0%': { opacity: '0', transform: 'translateX(50px)' },
+                            '100%': { opacity: '1', transform: 'translateX(0)' }
+                        },
+                        slideInLeft: {
+                            '0%': { opacity: '0', transform: 'translateX(-50px)' },
+                            '100%': { opacity: '1', transform: 'translateX(0)' }
                         }
                     }
                 }
@@ -29,6 +39,21 @@
         }
     </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .carousel-container {
+            overflow: hidden;
+        }
+        .carousel-track {
+            transition: transform 0.5s ease-in-out;
+        }
+        .pagination-dot {
+            transition: all 0.3s ease;
+        }
+        .pagination-dot.active {
+            background: rgb(37 99 235);
+            transform: scale(1.2);
+        }
+    </style>
 </head>
 <body class="bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen">
     <!-- Navigation -->
@@ -126,17 +151,67 @@
         </div>
     </section>
 
-    <!-- Recent Products -->
+    <!-- Products Carousel Section -->
     <section class="py-16">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-12">
-                <h2 class="text-3xl font-bold text-gray-900 mb-4">Productos Recientes</h2>
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Productos Destacados</h2>
                 <p class="text-gray-600 max-w-2xl mx-auto">
-                    Los últimos productos agregados a tu inventario
+                    Explora nuestros productos más populares y recientes
                 </p>
             </div>
-            <div id="recentProducts" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- Products will be loaded here -->
+
+            <!-- Carousel Container -->
+            <div class="relative bg-white rounded-2xl shadow-xl p-8">
+                <!-- Navigation Arrows -->
+                <button 
+                    id="prevBtn" 
+                    onclick="previousSlide()" 
+                    class="absolute left-4 top-1/2 transform -translate-y-1/2 z-10 bg-white shadow-lg rounded-full p-3 hover:bg-gray-50 transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                    <i class="fas fa-chevron-left text-gray-600"></i>
+                </button>
+                
+                <button 
+                    id="nextBtn" 
+                    onclick="nextSlide()" 
+                    class="absolute right-4 top-1/2 transform -translate-y-1/2 z-10 bg-white shadow-lg rounded-full p-3 hover:bg-gray-50 transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                    <i class="fas fa-chevron-right text-gray-600"></i>
+                </button>
+
+                <!-- Carousel Content -->
+                <div class="carousel-container mx-12">
+                    <div id="carouselTrack" class="carousel-track flex transition-transform duration-500 ease-in-out">
+                        <!-- Products will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Pagination Dots -->
+                <div id="paginationDots" class="flex justify-center mt-8 space-x-2">
+                    <!-- Dots will be generated dynamically -->
+                </div>
+
+                <!-- Empty State -->
+                <div id="emptyCarousel" class="hidden text-center py-12">
+                    <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-box-open text-gray-400 text-3xl"></i>
+                    </div>
+                    <h3 class="text-xl font-medium text-gray-900 mb-2">No hay productos</h3>
+                    <p class="text-gray-600 mb-4">Comienza agregando tu primer producto al inventario</p>
+                    <button onclick="showAddProductModal()" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200">
+                        <i class="fas fa-plus mr-2"></i>
+                        Agregar Producto
+                    </button>
+                </div>
+            </div>
+
+            <!-- View All Button -->
+            <div class="text-center mt-8">
+                <a href="catalogo.html" class="inline-flex items-center px-6 py-3 border border-blue-600 text-blue-600 font-semibold rounded-lg hover:bg-blue-50 transition-all duration-200">
+                    <span>Ver Todos los Productos</span>
+                    <i class="fas fa-arrow-right ml-2"></i>
+                </a>
             </div>
         </div>
     </section>
@@ -175,12 +250,12 @@
                     <label class="block text-sm font-medium text-gray-700 mb-2">Categoría</label>
                     <select id="productCategory" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
                         <option value="">Seleccionar categoría</option>
-                        <option value="electronica">Electrónica</option>
-                        <option value="ropa">Ropa</option>
-                        <option value="hogar">Hogar</option>
-                        <option value="deportes">Deportes</option>
-                        <option value="libros">Libros</option>
-                        <option value="otros">Otros</option>
+                        <option value="Electrónica">Electrónica</option>
+                        <option value="Ropa">Ropa</option>
+                        <option value="Hogar">Hogar</option>
+                        <option value="Deportes">Deportes</option>
+                        <option value="Libros">Libros</option>
+                        <option value="Otros">Otros</option>
                     </select>
                 </div>
                 <div class="flex gap-3 pt-4">
@@ -205,12 +280,332 @@
 
     <script>
         // Global variables
-        let products = JSON.parse(localStorage.getItem('products')) || [];
+        let products = [];
+        let currentSlide = 0;
+        let itemsPerSlide = 3; // Default for desktop
+        let totalSlides = 0;
+        const API_BASE_URL = 'api/products.php';
 
         // Initialize page
         document.addEventListener('DOMContentLoaded', function() {
-            updateStats();
-            loadRecentProducts();
+            updateItemsPerSlide();
+            loadProducts();
+            setupEventListeners();
+        });
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Resize listener for responsive carousel
+            window.addEventListener('resize', function() {
+                updateItemsPerSlide();
+                if (products.length > 0) {
+                    setupCarousel();
+                    updateCarouselPosition();
+                }
+            });
+
+            // Keyboard navigation
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'ArrowLeft') {
+                    previousSlide();
+                } else if (e.key === 'ArrowRight') {
+                    nextSlide();
+                }
+            });
+
+            // Touch/swipe support
+            let startX = 0;
+            const track = document.getElementById('carouselTrack');
+            
+            track.addEventListener('touchstart', function(e) {
+                startX = e.touches[0].clientX;
+            });
+
+            track.addEventListener('touchend', function(e) {
+                const endX = e.changedTouches[0].clientX;
+                const diff = startX - endX;
+                
+                if (Math.abs(diff) > 50) { // Minimum swipe distance
+                    if (diff > 0) {
+                        nextSlide();
+                    } else {
+                        previousSlide();
+                    }
+                }
+            });
+        }
+
+        // Update items per slide based on screen size
+        function updateItemsPerSlide() {
+            const width = window.innerWidth;
+            if (width < 768) {
+                itemsPerSlide = 1; // Mobile
+            } else if (width < 1024) {
+                itemsPerSlide = 2; // Tablet
+            } else {
+                itemsPerSlide = 3; // Desktop
+            }
+        }
+
+        // Load products from API
+        async function loadProducts() {
+            try {
+                const response = await fetch(API_BASE_URL);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (Array.isArray(data)) {
+                    products = data;
+                } else if (data.success && Array.isArray(data.data)) {
+                    products = data.data;
+                } else {
+                    products = [];
+                }
+
+                // Fallback to localStorage if API fails
+                if (products.length === 0) {
+                    const localProducts = JSON.parse(localStorage.getItem('products')) || [];
+                    products = localProducts;
+                }
+
+                updateStats();
+                setupCarousel();
+                
+            } catch (error) {
+                console.error('Error cargando productos:', error);
+                
+                // Use localStorage as fallback
+                const localProducts = JSON.parse(localStorage.getItem('products')) || [];
+                products = localProducts;
+                
+                updateStats();
+                setupCarousel();
+            }
+        }
+
+        // Setup carousel
+        function setupCarousel() {
+            if (products.length === 0) {
+                showEmptyState();
+                return;
+            }
+
+            hideEmptyState();
+            totalSlides = Math.ceil(products.length / itemsPerSlide);
+            currentSlide = Math.min(currentSlide, totalSlides - 1);
+            
+            renderCarousel();
+            createPaginationDots();
+            updateCarouselPosition();
+            updateNavigationButtons();
+        }
+
+        // Render carousel items
+        function renderCarousel() {
+            const track = document.getElementById('carouselTrack');
+            track.innerHTML = '';
+
+            // Create slides
+            for (let i = 0; i < totalSlides; i++) {
+                const slide = document.createElement('div');
+                slide.className = `flex-none w-full grid grid-cols-${itemsPerSlide} gap-6`;
+                
+                // Add products to this slide
+                const startIdx = i * itemsPerSlide;
+                const endIdx = Math.min(startIdx + itemsPerSlide, products.length);
+                
+                for (let j = startIdx; j < endIdx; j++) {
+                    const product = products[j];
+                    slide.innerHTML += createProductCard(product);
+                }
+
+                // Fill remaining slots with empty divs if needed
+                const remainingSlots = itemsPerSlide - (endIdx - startIdx);
+                for (let k = 0; k < remainingSlots; k++) {
+                    slide.innerHTML += '<div></div>';
+                }
+
+                track.appendChild(slide);
+            }
+        }
+
+        // Create product card
+        function createProductCard(product) {
+            const price = parseFloat(product.price || product.selling_price || 0);
+            const stock = parseInt(product.stock || product.stock_current || 0);
+            const category = product.category || product.category_name || 'Sin categoría';
+            
+            const stockStatus = stock === 0 ? 'text-red-600' : stock <= 5 ? 'text-yellow-600' : 'text-green-600';
+            const stockText = stock === 0 ? 'Agotado' : stock <= 5 ? 'Stock Bajo' : 'Disponible';
+
+            return `
+                <div class="bg-gradient-to-br from-white to-gray-50 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group border border-gray-100">
+                    <div class="p-6">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="flex-1">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors duration-200 line-clamp-1">
+                                    ${product.name}
+                                </h3>
+                                <p class="text-sm text-gray-600 mb-3 line-clamp-2 h-10">${product.description || 'Sin descripción'}</p>
+                                <div class="flex flex-wrap gap-1 mb-3">
+                                    <span class="inline-block px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
+                                        ${category}
+                                    </span>
+                                    ${product.brand ? `<span class="inline-block px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded-full">${product.brand}</span>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="text-left">
+                                <span class="text-2xl font-bold text-gray-900">$${price.toFixed(2)}</span>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-sm font-medium ${stockStatus}">${stockText}</div>
+                                <div class="text-xs text-gray-500">Stock: ${stock}</div>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="viewProduct(${product.id})" class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm font-medium">
+                                <i class="fas fa-eye mr-1"></i>
+                                Ver Detalles
+                            </button>
+                            <button onclick="addToCart(${product.id})" class="px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors duration-200" ${stock === 0 ? 'disabled' : ''}>
+                                <i class="fas fa-shopping-cart"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Create pagination dots
+        function createPaginationDots() {
+            const dotsContainer = document.getElementById('paginationDots');
+            dotsContainer.innerHTML = '';
+
+            for (let i = 0; i < totalSlides; i++) {
+                const dot = document.createElement('button');
+                dot.className = `pagination-dot w-3 h-3 rounded-full bg-gray-300 hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 ${i === currentSlide ? 'active' : ''}`;
+                dot.onclick = () => goToSlide(i);
+                dotsContainer.appendChild(dot);
+            }
+        }
+
+        // Update carousel position
+        function updateCarouselPosition() {
+            const track = document.getElementById('carouselTrack');
+            const translateX = -currentSlide * 100;
+            track.style.transform = `translateX(${translateX}%)`;
+            
+            // Update active dot
+            const dots = document.querySelectorAll('.pagination-dot');
+            dots.forEach((dot, index) => {
+                dot.classList.toggle('active', index === currentSlide);
+            });
+        }
+
+        // Update navigation buttons
+        function updateNavigationButtons() {
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            
+            prevBtn.style.opacity = currentSlide === 0 ? '0.5' : '1';
+            nextBtn.style.opacity = currentSlide === totalSlides - 1 ? '0.5' : '1';
+            
+            prevBtn.disabled = currentSlide === 0;
+            nextBtn.disabled = currentSlide === totalSlides - 1;
+        }
+
+        // Navigation functions
+        function nextSlide() {
+            if (currentSlide < totalSlides - 1) {
+                currentSlide++;
+                updateCarouselPosition();
+                updateNavigationButtons();
+            }
+        }
+
+        function previousSlide() {
+            if (currentSlide > 0) {
+                currentSlide--;
+                updateCarouselPosition();
+                updateNavigationButtons();
+            }
+        }
+
+        function goToSlide(slideIndex) {
+            currentSlide = slideIndex;
+            updateCarouselPosition();
+            updateNavigationButtons();
+        }
+
+        // Show/hide empty state
+        function showEmptyState() {
+            document.getElementById('emptyCarousel').classList.remove('hidden');
+            document.getElementById('carouselTrack').parentElement.classList.add('hidden');
+            document.getElementById('paginationDots').classList.add('hidden');
+            document.getElementById('prevBtn').classList.add('hidden');
+            document.getElementById('nextBtn').classList.add('hidden');
+        }
+
+        function hideEmptyState() {
+            document.getElementById('emptyCarousel').classList.add('hidden');
+            document.getElementById('carouselTrack').parentElement.classList.remove('hidden');
+            document.getElementById('paginationDots').classList.remove('hidden');
+            document.getElementById('prevBtn').classList.remove('hidden');
+            document.getElementById('nextBtn').classList.remove('hidden');
+        }
+
+        // Product actions
+        function viewProduct(productId) {
+            const product = products.find(p => p.id == productId);
+            if (product) {
+                showNotification(`Viendo detalles de: ${product.name}`);
+                // Redirect to catalog or show modal
+                setTimeout(() => {
+                    window.location.href = `catalogo.html?product=${productId}`;
+                }, 1000);
+            }
+        }
+
+        function addToCart(productId) {
+            const product = products.find(p => p.id == productId);
+            if (product) {
+                showNotification(`${product.name} agregado al carrito`);
+                // Add cart functionality here
+            }
+        }
+
+        // Auto-play carousel (optional)
+        let autoPlayInterval;
+        
+        function startAutoPlay() {
+            autoPlayInterval = setInterval(() => {
+                if (currentSlide < totalSlides - 1) {
+                    nextSlide();
+                } else {
+                    goToSlide(0); // Loop back to start
+                }
+            }, 5000); // Change slide every 5 seconds
+        }
+
+        function stopAutoPlay() {
+            clearInterval(autoPlayInterval);
+        }
+
+        // Pause auto-play on hover
+        document.addEventListener('DOMContentLoaded', function() {
+            const carousel = document.querySelector('.carousel-container');
+            if (carousel) {
+                carousel.addEventListener('mouseenter', stopAutoPlay);
+                carousel.addEventListener('mouseleave', startAutoPlay);
+                
+                // Start auto-play after initial load
+                setTimeout(startAutoPlay, 3000);
+            }
         });
 
         // Mobile menu toggle
@@ -242,88 +637,76 @@
         }
 
         // Add product form handler
-        document.getElementById('addProductForm').addEventListener('submit', function(e) {
+        document.getElementById('addProductForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            const product = {
-                id: Date.now(),
+            const productData = {
                 name: document.getElementById('productName').value,
                 description: document.getElementById('productDescription').value,
                 price: parseFloat(document.getElementById('productPrice').value),
                 stock: parseInt(document.getElementById('productStock').value),
-                category: document.getElementById('productCategory').value,
-                dateAdded: new Date().toISOString()
+                category: document.getElementById('productCategory').value
             };
 
-            products.push(product);
-            localStorage.setItem('products', JSON.stringify(products));
+            try {
+                // Try to add via API first
+                const response = await fetch(API_BASE_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(productData)
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success) {
+                        showNotification('Producto agregado exitosamente');
+                        loadProducts(); // Reload products
+                    } else {
+                        throw new Error(result.message || 'Error al agregar producto');
+                    }
+                } else {
+                    throw new Error('Error de servidor');
+                }
+            } catch (error) {
+                console.error('Error adding product via API:', error);
+                
+                // Fallback to localStorage
+                const product = {
+                    id: Date.now(),
+                    ...productData,
+                    dateAdded: new Date().toISOString()
+                };
+
+                const localProducts = JSON.parse(localStorage.getItem('products')) || [];
+                localProducts.push(product);
+                localStorage.setItem('products', JSON.stringify(localProducts));
+                
+                products = localProducts;
+                showNotification('Producto agregado exitosamente (modo offline)');
+                setupCarousel();
+            }
             
             hideAddProductModal();
-            showNotification('Producto agregado exitosamente');
             updateStats();
-            loadRecentProducts();
         });
 
         // Update statistics
         function updateStats() {
             const totalProducts = products.length;
-            const availableProducts = products.filter(p => p.stock > 0).length;
-            const lowStockProducts = products.filter(p => p.stock <= 5).length;
+            const availableProducts = products.filter(p => {
+                const stock = parseInt(p.stock || p.stock_current || 0);
+                return stock > 0;
+            }).length;
+            const lowStockProducts = products.filter(p => {
+                const stock = parseInt(p.stock || p.stock_current || 0);
+                return stock <= 5 && stock > 0;
+            }).length;
 
             document.getElementById('totalProducts').textContent = totalProducts;
             document.getElementById('availableProducts').textContent = availableProducts;
             document.getElementById('lowStockProducts').textContent = lowStockProducts;
-        }
-
-        // Load recent products
-        function loadRecentProducts() {
-            const recentProducts = products
-                .sort((a, b) => new Date(b.dateAdded) - new Date(a.dateAdded))
-                .slice(0, 6);
-
-            const container = document.getElementById('recentProducts');
-            
-            if (recentProducts.length === 0) {
-                container.innerHTML = `
-                    <div class="col-span-full text-center py-12">
-                        <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <i class="fas fa-box-open text-gray-400 text-3xl"></i>
-                        </div>
-                        <h3 class="text-xl font-medium text-gray-900 mb-2">No hay productos</h3>
-                        <p class="text-gray-600 mb-4">Comienza agregando tu primer producto al inventario</p>
-                        <button onclick="showAddProductModal()" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200">
-                            Agregar Producto
-                        </button>
-                    </div>
-                `;
-                return;
-            }
-
-            container.innerHTML = recentProducts.map(product => `
-                <div class="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group">
-                    <div class="p-6">
-                        <div class="flex items-start justify-between mb-4">
-                            <div class="flex-1">
-                                <h3 class="text-lg font-semibold text-gray-900 mb-1">${product.name}</h3>
-                                <p class="text-sm text-gray-600 mb-2">${product.description || 'Sin descripción'}</p>
-                                <span class="inline-block px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
-                                    ${product.category}
-                                </span>
-                            </div>
-                        </div>
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center space-x-4">
-                                <span class="text-xl font-bold text-gray-900">$${product.price.toFixed(2)}</span>
-                                <span class="text-sm text-gray-600">Stock: ${product.stock}</span>
-                            </div>
-                            <div class="flex items-center space-x-2">
-                                ${product.stock <= 5 ? '<i class="fas fa-exclamation-triangle text-yellow-500"></i>' : ''}
-                                ${product.stock === 0 ? '<span class="text-xs text-red-600 font-medium">Agotado</span>' : ''}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
         }
 
         // Show notification
@@ -343,6 +726,65 @@
                 hideAddProductModal();
             }
         });
+
+        // Enhanced responsive grid classes
+        function updateGridClasses() {
+            const slides = document.querySelectorAll('#carouselTrack > div');
+            slides.forEach(slide => {
+                if (itemsPerSlide === 1) {
+                    slide.className = 'flex-none w-full grid grid-cols-1 gap-6';
+                } else if (itemsPerSlide === 2) {
+                    slide.className = 'flex-none w-full grid grid-cols-2 gap-6';
+                } else {
+                    slide.className = 'flex-none w-full grid grid-cols-3 gap-6';
+                }
+            });
+        }
+
+        // Enhanced setup function that handles grid updates
+        function setupCarousel() {
+            if (products.length === 0) {
+                showEmptyState();
+                return;
+            }
+
+            hideEmptyState();
+            totalSlides = Math.ceil(products.length / itemsPerSlide);
+            currentSlide = Math.min(currentSlide, totalSlides - 1);
+            
+            renderCarousel();
+            updateGridClasses();
+            createPaginationDots();
+            updateCarouselPosition();
+            updateNavigationButtons();
+        }
+
+        // Add intersection observer for animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-slide-in-right');
+                }
+            });
+        }, observerOptions);
+
+        // Observe carousel items for animations
+        function observeCarouselItems() {
+            const items = document.querySelectorAll('#carouselTrack .bg-gradient-to-br');
+            items.forEach(item => observer.observe(item));
+        }
+
+        // Update render function to include animation setup
+        const originalRenderCarousel = renderCarousel;
+        renderCarousel = function() {
+            originalRenderCarousel();
+            setTimeout(observeCarouselItems, 100);
+        };
     </script>
 </body>
 </html>
