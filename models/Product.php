@@ -1,21 +1,17 @@
 <?php
-// models/Product.php - Actualizado para base de datos completa
+// models/Product.php - Versión simplificada y compatible
 class Product {
     private $conn;
     private $table_name = "products";
 
+    // Propiedades del producto
     public $id;
-    public $sku;
     public $name;
     public $description;
-    public $selling_price;
-    public $stock_current;
-    public $category_id;
-    public $supplier_id;
-    public $brand;
-    public $model;
-    public $is_active;
-    public $date_created;
+    public $price;
+    public $stock;
+    public $category;
+    public $date_added;
     public $date_updated;
 
     public function __construct($db) {
@@ -26,32 +22,29 @@ class Product {
     public function create() {
         $query = "INSERT INTO " . $this->table_name . " 
                   (sku, name, description, selling_price, stock_current, category_id, is_active, date_created) 
-                  VALUES (:sku, :name, :description, :selling_price, :stock_current, :category_id, :is_active, NOW())";
+                  VALUES (:sku, :name, :description, :price, :stock, :category_id, 1, NOW())";
 
         $stmt = $this->conn->prepare($query);
 
-        // Generar SKU automático si no se proporciona
-        if (empty($this->sku)) {
-            $this->sku = 'PRD-' . time() . '-' . rand(100, 999);
-        }
+        // Generar SKU automático
+        $sku = 'PRD-' . time() . '-' . rand(100, 999);
+        
+        // Buscar ID de categoría
+        $category_id = $this->getCategoryIdByName($this->category);
 
         // Limpiar datos
-        $this->sku = htmlspecialchars(strip_tags($this->sku));
         $this->name = htmlspecialchars(strip_tags($this->name));
         $this->description = htmlspecialchars(strip_tags($this->description ?? ''));
-        $this->selling_price = floatval($this->selling_price);
-        $this->stock_current = intval($this->stock_current);
-        $this->category_id = !empty($this->category_id) ? intval($this->category_id) : null;
-        $this->is_active = 1;
+        $this->price = floatval($this->price);
+        $this->stock = intval($this->stock);
 
         // Bind valores
-        $stmt->bindParam(":sku", $this->sku);
+        $stmt->bindParam(":sku", $sku);
         $stmt->bindParam(":name", $this->name);
         $stmt->bindParam(":description", $this->description);
-        $stmt->bindParam(":selling_price", $this->selling_price);
-        $stmt->bindParam(":stock_current", $this->stock_current);
-        $stmt->bindParam(":category_id", $this->category_id);
-        $stmt->bindParam(":is_active", $this->is_active);
+        $stmt->bindParam(":price", $this->price);
+        $stmt->bindParam(":stock", $this->stock);
+        $stmt->bindParam(":category_id", $category_id);
 
         if($stmt->execute()) {
             $this->id = $this->conn->lastInsertId();
@@ -60,7 +53,7 @@ class Product {
         return false;
     }
 
-    // Leer todos los productos con información de categorías
+    // Leer todos los productos
     public function read() {
         $query = "SELECT 
                     p.id,
@@ -71,10 +64,8 @@ class Product {
                     p.stock_current as stock,
                     p.brand,
                     p.model,
-                    p.is_active,
-                    p.date_created,
+                    p.date_created as date_added,
                     p.date_updated,
-                    c.name as category_name,
                     COALESCE(c.name, 'Sin categoría') as category
                   FROM " . $this->table_name . " p
                   LEFT JOIN categories c ON p.category_id = c.id
@@ -90,7 +81,10 @@ class Product {
     public function readOne() {
         $query = "SELECT 
                     p.*,
-                    c.name as category_name
+                    p.selling_price as price,
+                    p.stock_current as stock,
+                    p.date_created as date_added,
+                    c.name as category
                   FROM " . $this->table_name . " p
                   LEFT JOIN categories c ON p.category_id = c.id
                   WHERE p.id = :id AND p.is_active = 1 
@@ -103,16 +97,12 @@ class Product {
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         
         if($row) {
-            $this->sku = $row['sku'];
             $this->name = $row['name'];
             $this->description = $row['description'];
-            $this->selling_price = $row['selling_price'];
-            $this->stock_current = $row['stock_current'];
-            $this->category_id = $row['category_id'];
-            $this->brand = $row['brand'];
-            $this->model = $row['model'];
-            $this->is_active = $row['is_active'];
-            $this->date_created = $row['date_created'];
+            $this->price = $row['price'];
+            $this->stock = $row['stock'];
+            $this->category = $row['category'];
+            $this->date_added = $row['date_added'];
             $this->date_updated = $row['date_updated'];
             return true;
         }
@@ -124,28 +114,30 @@ class Product {
         $query = "UPDATE " . $this->table_name . " 
                   SET name = :name, 
                       description = :description, 
-                      selling_price = :selling_price, 
-                      stock_current = :stock_current, 
+                      selling_price = :price, 
+                      stock_current = :stock, 
                       category_id = :category_id,
                       date_updated = NOW()
                   WHERE id = :id AND is_active = 1";
 
         $stmt = $this->conn->prepare($query);
 
+        // Buscar ID de categoría
+        $category_id = $this->getCategoryIdByName($this->category);
+
         // Limpiar datos
         $this->name = htmlspecialchars(strip_tags($this->name));
         $this->description = htmlspecialchars(strip_tags($this->description ?? ''));
-        $this->selling_price = floatval($this->selling_price);
-        $this->stock_current = intval($this->stock_current);
-        $this->category_id = !empty($this->category_id) ? intval($this->category_id) : null;
+        $this->price = floatval($this->price);
+        $this->stock = intval($this->stock);
         $this->id = intval($this->id);
 
         // Bind valores
         $stmt->bindParam(":name", $this->name);
         $stmt->bindParam(":description", $this->description);
-        $stmt->bindParam(":selling_price", $this->selling_price);
-        $stmt->bindParam(":stock_current", $this->stock_current);
-        $stmt->bindParam(":category_id", $this->category_id);
+        $stmt->bindParam(":price", $this->price);
+        $stmt->bindParam(":stock", $this->stock);
+        $stmt->bindParam(":category_id", $category_id);
         $stmt->bindParam(":id", $this->id);
 
         return $stmt->execute();
@@ -175,7 +167,7 @@ class Product {
                     p.stock_current as stock,
                     p.brand,
                     p.model,
-                    p.date_created,
+                    p.date_created as date_added,
                     p.date_updated,
                     COALESCE(c.name, 'Sin categoría') as category
                   FROM " . $this->table_name . " p
@@ -203,7 +195,7 @@ class Product {
                     p.stock_current as stock,
                     p.brand,
                     p.model,
-                    p.date_created,
+                    p.date_created as date_added,
                     p.date_updated,
                     c.name as category
                   FROM " . $this->table_name . " p
@@ -252,6 +244,21 @@ class Product {
         $stats['out_of_stock'] = intval($row['out_of_stock']);
         
         return $stats;
+    }
+
+    // Función auxiliar para obtener ID de categoría por nombre
+    private function getCategoryIdByName($categoryName) {
+        if (empty($categoryName)) {
+            return null;
+        }
+
+        $query = "SELECT id FROM categories WHERE name = :name AND is_active = 1 LIMIT 1";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":name", $categoryName);
+        $stmt->execute();
+        
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ? $row['id'] : null;
     }
 
     // Obtener categorías disponibles

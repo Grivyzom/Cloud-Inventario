@@ -4,7 +4,7 @@ class Database {
     private $host = 'localhost';
     private $db_name = 'cloud_inventario';
     private $username = 'root';
-    private $password = ''; // CAMBIAR A VACÍO para XAMPP por defecto
+    private $password = ''; // VACÍO para XAMPP por defecto
     private $conn;
 
     public function getConnection() {
@@ -23,28 +23,17 @@ class Database {
                 )
             );
             
-            // Mensaje de éxito para debug
             error_log("✅ Conexión a base de datos exitosa");
             
         } catch(PDOException $exception) {
-            // Log del error completo
             error_log("❌ Error de conexión PDO: " . $exception->getMessage());
             
-            // Mensaje de error más descriptivo
-            die(json_encode([
-                'success' => false,
-                'message' => 'Error de conexión a la base de datos',
-                'error' => $exception->getMessage(),
-                'host' => $this->host,
-                'database' => $this->db_name,
-                'user' => $this->username,
-                'password_set' => !empty($this->password) ? 'SÍ' : 'NO'
-            ]));
+            // Mostrar error más claro
+            throw new Exception("Error de conexión: " . $exception->getMessage());
         }
         return $this->conn;
     }
     
-    // Método para probar la conexión
     public function testConnection() {
         try {
             $conn = $this->getConnection();
