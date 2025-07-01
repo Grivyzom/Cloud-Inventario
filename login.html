@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión - Cloud Inventario</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-in-out',
+                        'slide-up': 'slideUp 0.3s ease-out',
+                        'float': 'float 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' }
+                        },
+                        slideUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' }
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-20px)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gradient-to-br from-blue-50 via-white to-purple-50 min-h-screen">
+    <!-- Background Elements -->
+    <div class="absolute inset-0 overflow-hidden pointer-events-none">
+        <div class="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-3xl animate-float"></div>
+        <div class="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-purple-400/20 to-blue-400/20 rounded-full blur-3xl animate-float" style="animation-delay: -3s;"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="relative z-10 bg-white/80 backdrop-blur-md border-b border-gray-200/50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-cloud text-white text-sm"></i>
+                    </div>
+                    <span class="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                        Cloud Inventario
+                    </span>
+                </div>
+                <div class="flex items-center space-x-6">
+                    <a href="index.html" class="text-gray-700 hover:text-blue-600 transition-colors duration-200 font-medium">
+                        <i class="fas fa-arrow-left mr-2"></i>Volver al Inicio
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="relative z-10 flex items-center justify-center min-h-[calc(100vh-64px)] py-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-md w-full space-y-8">
+            <!-- Header -->
+            <div class="text-center animate-fade-in">
+                <div class="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+                    <i class="fas fa-user-lock text-white text-2xl"></i>
+                </div>
+                <h2 class="text-3xl font-bold text-gray-900 mb-2">Iniciar Sesión</h2>
+                <p class="text-gray-600">Accede a tu sistema de inventario</p>
+            </div>
+
+            <!-- Login Form -->
+            <div class="bg-white/80 backdrop-blur-md rounded-2xl shadow-xl p-8 animate-slide-up">
+                <form id="loginForm" class="space-y-6">
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
+                            Correo Electrónico
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-envelope text-gray-400"></i>
+                            </div>
+                            <input 
+                                id="email" 
+                                name="email" 
+                                type="email" 
+                                autocomplete="email" 
+                                required 
+                                class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/50"
+                                placeholder="tu@email.com"
+                            >
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
+                            Contraseña
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-lock text-gray-400"></i>
+                            </div>
+                            <input 
+                                id="password" 
+                                name="password" 
+                                type="password" 
+                                autocomplete="current-password" 
+                                required 
+                                class="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/50"
+                                placeholder="••••••••"
+                            >
+                            <button 
+                                type="button" 
+                                onclick="togglePassword()" 
+                                class="absolute inset-y-0 right-0 pr-3 flex items-center"
+                            >
+                                <i id="passwordToggleIcon" class="fas fa-eye-slash text-gray-400 hover:text-gray-600 transition-colors duration-200"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <input 
+                                id="remember-me" 
+                                name="remember-me" 
+                                type="checkbox" 
+                                class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                            >
+                            <label for="remember-me" class="ml-2 block text-sm text-gray-700">
+                                Recordarme
+                            </label>
+                        </div>
+                        <div class="text-sm">
+                            <a href="#" class="text-blue-600 hover:text-blue-500 transition-colors duration-200 font-medium">
+                                ¿Olvidaste tu contraseña?
+                            </a>
+                        </div>
+                    </div>
+
+                    <div>
+                        <button 
+                            type="submit" 
+                            class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                        >
+                            <span class="absolute left-0 inset-y-0 flex items-center pl-3">
+                                <i class="fas fa-sign-in-alt group-hover:translate-x-1 transition-transform duration-200"></i>
+                            </span>
+                            Iniciar Sesión
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Demo Credentials -->
+                <div class="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <h3 class="text-sm font-medium text-blue-800 mb-2">
+                        <i class="fas fa-info-circle mr-2"></i>Credenciales de Demo
+                    </h3>
+                    <div class="text-sm text-blue-700 space-y-1">
+                        <p><strong>Email:</strong> admin@cloudinventario.com</p>
+                        <p><strong>Contraseña:</strong> admin123</p>
+                    </div>
+                    <button 
+                        onclick="fillDemoCredentials()" 
+                        class="mt-2 text-xs bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition-colors duration-200"
+                    >
+                        Usar credenciales demo
+                    </button>
+                </div>
+            </div>
+
+            <!-- Register Link -->
+            <div class="text-center animate-fade-in">
+                <p class="text-sm text-gray-600">
+                    ¿No tienes una cuenta? 
+                    <a href="#" onclick="showRegisterModal()" class="text-blue-600 hover:text-blue-500 font-medium transition-colors duration-200">
+                        Regístrate aquí
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div id="registerModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md transform transition-all duration-300 scale-95 opacity-0" id="registerModalContent">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-xl font-bold text-gray-900">Crear Cuenta</h3>
+                    <button onclick="hideRegisterModal()" class="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200">
+                        <i class="fas fa-times text-gray-500"></i>
+                    </button>
+                </div>
+            </div>
+            <form id="registerForm" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Nombre Completo</label>
+                    <input type="text" id="registerName" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Correo Electrónico</label>
+                    <input type="email" id="registerEmail" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Contraseña</label>
+                    <input type="password" id="registerPassword" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Confirmar Contraseña</label>
+                    <input type="password" id="registerPasswordConfirm" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
+                </div>
+                <div class="flex gap-3 pt-4">
+                    <button type="button" onclick="hideRegisterModal()" class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200">
+                        Registrarse
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-white/80 backdrop-blur-sm hidden z-50 flex items-center justify-center">
+        <div class="text-center">
+            <div class="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
+            <p class="text-gray-600 font-medium">Iniciando sesión...</p>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div id="notification" class="fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg transform translate-x-full transition-transform duration-300 z-50">
+        <div class="flex items-center space-x-2">
+            <i id="notificationIcon" class="fas fa-check-circle"></i>
+            <span id="notificationText">Operación exitosa</span>
+        </div>
+    </div>
+
+    <script>
+        // Demo users
+        const demoUsers = [
+            {
+                email: 'admin@cloudinventario.com',
+                password: 'admin123',
+                name: 'Administrador',
+                role: 'admin'
+            }
+        ];
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if user is already logged in
+            const user = JSON.parse(localStorage.getItem('currentUser') || 'null');
+            if (user) {
+                window.location.href = 'index.html';
+            }
+
+            // Load registered users
+            const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
+            
+            // Setup form handlers
+            setupFormHandlers();
+        });
+
+        // Setup form handlers
+        function setupFormHandlers() {
+            document.getElementById('loginForm').addEventListener('submit', handleLogin);
+            document.getElementById('registerForm').addEventListener('submit', handleRegister);
+        }
+
+        // Toggle password visibility
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const toggleIcon = document.getElementById('passwordToggleIcon');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            }
+        }
+
+        // Fill demo credentials
+        function fillDemoCredentials() {
+            document.getElementById('email').value = 'admin@cloudinventario.com';
+            document.getElementById('password').value = 'admin123';
+        }
+
+        // Handle login
+        function handleLogin(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            showLoading();
+            
+            // Simulate API call delay
+            setTimeout(() => {
+                const user = authenticateUser(email, password);
+                
+                if (user) {
+                    // Store user session
+                    localStorage.setItem('currentUser', JSON.stringify(user));
+                    
+                    showNotification('Inicio de sesión exitoso', 'success');
+                    
+                    // Redirect after short delay
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 1000);
+                } else {
+                    hideLoading();
+                    showNotification('Credenciales incorrectas', 'error');
+                }
+            }, 1500);
+        }
+
+        // Authenticate user
+        function authenticateUser(email, password) {
+            // Check demo users
+            const demoUser = demoUsers.find(u => u.email === email && u.password === password);
+            if (demoUser) {
+                return demoUser;
+            }
+            
+            // Check registered users
+            const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
+            const registeredUser = registeredUsers.find(u => u.email === email && u.password === password);
+            if (registeredUser) {
+                return registeredUser;
+            }
+            
+            return null;
+        }
+
+        // Show register modal
+        function showRegisterModal() {
+            const modal = document.getElementById('registerModal');
+            const content = document.getElementById('registerModalContent');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        // Hide register modal
+        function hideRegisterModal() {
+            const modal = document.getElementById('registerModal');
+            const content = document.getElementById('registerModalContent');
+            content.classList.add('scale-95', 'opacity-0');
+            content.classList.remove('scale-100', 'opacity-100');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                document.getElementById('registerForm').reset();
+            }, 300);
+        }
+
+        // Handle register
+        function handleRegister(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('registerName').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            const passwordConfirm = document.getElementById('registerPasswordConfirm').value;
+            
+            // Validate passwords match
+            if (password !== passwordConfirm) {
+                showNotification('Las contraseñas no coinciden', 'error');
+                return;
+            }
+            
+            // Check if user already exists
+            const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
+            const existingUser = registeredUsers.find(u => u.email === email);
+            const existingDemoUser = demoUsers.find(u => u.email === email);
+            
+            if (existingUser || existingDemoUser) {
+                showNotification('Este email ya está registrado', 'error');
+                return;
+            }
+            
+            // Create new user
+            const newUser = {
+                id: Date.now(),
+                name: name,
+                email: email,
+                password: password,
+                role: 'user',
+                dateRegistered: new Date().toISOString()
+            };
+            
+            // Save user
+            registeredUsers.push(newUser);
+            localStorage.setItem('registeredUsers', JSON.stringify(registeredUsers));
+            
+            hideRegisterModal();
+            showNotification('Cuenta creada exitosamente. Ahora puedes iniciar sesión.', 'success');
+        }
+
+        // Show loading
+        function showLoading() {
+            document.getElementById('loadingOverlay').classList.remove('hidden');
+        }
+
+        // Hide loading
+        function hideLoading() {
+            document.getElementById('loadingOverlay').classList.add('hidden');
+        }
+
+        // Show notification
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            const icon = document.getElementById('notificationIcon');
+            const text = document.getElementById('notificationText');
+            
+            // Set notification style based on type
+            if (type === 'success') {
+                notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg transform translate-x-full transition-transform duration-300 z-50';
+                icon.className = 'fas fa-check-circle';
+            } else if (type === 'error') {
+                notification.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg transform translate-x-full transition-transform duration-300 z-50';
+                icon.className = 'fas fa-exclamation-circle';
+            }
+            
+            text.textContent = message;
+            notification.classList.remove('translate-x-full');
+            
+            setTimeout(() => {
+                notification.classList.add('translate-x-full');
+            }, 4000);
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('registerModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                hideRegisterModal();
+            }
+        });
+
+        // Handle Enter key in forms
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                const activeModal = document.querySelector('.fixed:not(.hidden)');
+                if (!activeModal) {
+                    // If no modal is open, submit login form
+                    document.getElementById('loginForm').dispatchEvent(new Event('submit'));
+                }
+            }
+        });
+    </script>
+</body>
+</html>
