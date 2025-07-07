@@ -1,79 +1,259 @@
 <?php
-// models/Product.php
-class Product {
-    private $conn;
-    private $table_name = "products";
+// api/products.php - API completa para productos
+error_reporting(E_ALL);
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
 
-    public $id;
-    public $sku;
-    public $name;
-    public $description;
-    public $selling_price;
-    public $stock_current;
-    public $stock_minimum;
-    public $category_id;
-    public $supplier_id;
-    public $brand;
-    public $model;
-    public $barcode;
-    public $weight;
-    public $dimensions;
-    public $is_active;
+// Headers CORS y de respuesta
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
+header("Content-Type: application/json; charset=UTF-8");
 
-    public function __construct($db) {
-        $this->conn = $db;
+// Manejar preflight requests
+if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+    exit(0);
+}
+
+// Incluir archivos necesarios
+require_once '../config/database.php';
+require_once '../models/Product.php';
+
+// Crear conexión a la base de datos
+$database = new Database();
+$db = $database->getConnection();
+
+if (!$db) {
+    http_response_code(500);
+    echo json_encode([
+        'success' => false,
+        'message' => 'No se pudo conectar a la base de datos'
+    ]);
+    exit;
+}
+
+// Instanciar el modelo Product
+$product = new Product($db);
+
+// Obtener el método de la request
+$method = $_SERVER['REQUEST_METHOD'];
+$request_uri = $_SERVER['REQUEST_URI'];
+
+// Función para enviar respuesta JSON
+function sendResponse($data, $status_code = 200) {
+    http_response_code($status_code);
+    echo json_encode($data, JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+// Función para obtener datos JSON del body
+function getJsonInput() {
+    $json = file_get_contents('php://input');
+    return json_decode($json, true);
+}
+
+try {
+    switch ($method) {
+        case 'GET':
+            // Verificar parámetros de la URL
+            if (isset($_GET['test'])) {
+                // Test de conexión
+                $test_result = $database->testConnection();
+                sendResponse($test_result);
+                
+            } elseif (isset($_GET['stats'])) {
+                // Obtener estadísticas
+                $stats = $product->getStats();
+                sendResponse([
+                    'success' => true,
+                    'data' => $stats
+                ]);
+                
+            } elseif (isset($_GET['id'])) {
+                // Obtener un producto específico
+                $product->id = intval($_GET['id']);
+                if ($product->readOne()) {
+                    sendResponse([
+                        'success' => true,
+                        'data' => [
+                            'id' => $product->id,
+                            'name' => $product->name,
+                            'description' => $product->description,
+                            'price' => floatval($product->price),
+                            'stock' => intval($product->stock),
+                            'category' => $product->category,
+                            'date_added' => $product->date_added,
+                            'date_updated' => $product->date_updated
+                        ]
+                    ]);
+                } else {
+                    sendResponse([
+                        'success' => false,
+                        'message' => 'Producto no encontrado'
+                    ], 404);
+                }
+                
+            } elseif (isset($_GET['search'])) {
+                // Buscar productos
+                $keywords = $_GET['search'];
+                $stmt = $product->search($keywords);
+                $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                
+                sendResponse([
+                    'success' => true,
+                    'data' => $products,
+                    'count' => count($products)
+                ]);
+                
+            } elseif (isset($_GET['category'])) {
+                // Obtener productos por categoría
+                $category = $_GET['category'];
+                $stmt = $product->getByCategory($category);
+                $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                
+                sendResponse([
+                    'success' => true,
+                    'data' => $products,
+                    'count' => count($products)
+                ]);
+                
+            } else {
+                // Obtener todos los productos
+                $stmt = $product->read();
+                $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                
+                sendResponse([
+                    'success' => true,
+                    'data' => $products,
+                    'count' => count($products)
+                ]);
+            }
+            break;
+
+        case 'POST':
+            // Crear nuevo producto
+            $data = getJsonInput();
+            
+            if (!$data) {
+                sendResponse([
+                    'success' => false,
+                    'message' => 'Datos JSON inválidos'
+                ], 400);
+            }
+
+            // Validar campos requeridos
+            $required_fields = ['name', 'price', 'stock'];
+            foreach ($required_fields as $field) {
+                if (!isset($data[$field]) || empty($data[$field])) {
+                    sendResponse([
+                        'success' => false,
+                        'message' => "El campo '{$field}' es requerido"
+                    ], 400);
+                }
+            }
+
+            // Asignar valores al producto
+            $product->name = $data['name'];
+            $product->description = $data['description'] ?? '';
+            $product->price = floatval($data['price']);
+            $product->stock = intval($data['stock']);
+            $product->category = $data['category'] ?? 'Otros';
+
+            // Crear el producto
+            if ($product->create()) {
+                sendResponse([
+                    'success' => true,
+                    'message' => 'Producto creado exitosamente',
+                    'data' => [
+                        'id' => $product->id,
+                        'name' => $product->name,
+                        'price' => $product->price,
+                        'stock' => $product->stock,
+                        'category' => $product->category
+                    ]
+                ], 201);
+            } else {
+                sendResponse([
+                    'success' => false,
+                    'message' => 'Error al crear el producto'
+                ], 500);
+            }
+            break;
+
+        case 'PUT':
+            // Actualizar producto
+            $data = getJsonInput();
+            
+            if (!$data || !isset($data['id'])) {
+                sendResponse([
+                    'success' => false,
+                    'message' => 'ID del producto es requerido'
+                ], 400);
+            }
+
+            // Asignar valores al producto
+            $product->id = intval($data['id']);
+            $product->name = $data['name'] ?? '';
+            $product->description = $data['description'] ?? '';
+            $product->price = isset($data['price']) ? floatval($data['price']) : 0;
+            $product->stock = isset($data['stock']) ? intval($data['stock']) : 0;
+            $product->category = $data['category'] ?? '';
+
+            // Actualizar el producto
+            if ($product->update()) {
+                sendResponse([
+                    'success' => true,
+                    'message' => 'Producto actualizado exitosamente'
+                ]);
+            } else {
+                sendResponse([
+                    'success' => false,
+                    'message' => 'Error al actualizar el producto'
+                ], 500);
+            }
+            break;
+
+        case 'DELETE':
+            // Eliminar producto
+            $data = getJsonInput();
+            
+            if (!$data || !isset($data['id'])) {
+                sendResponse([
+                    'success' => false,
+                    'message' => 'ID del producto es requerido'
+                ], 400);
+            }
+
+            $product->id = intval($data['id']);
+
+            // Eliminar el producto
+            if ($product->delete()) {
+                sendResponse([
+                    'success' => true,
+                    'message' => 'Producto eliminado exitosamente'
+                ]);
+            } else {
+                sendResponse([
+                    'success' => false,
+                    'message' => 'Error al eliminar el producto'
+                ], 500);
+            }
+            break;
+
+        default:
+            sendResponse([
+                'success' => false,
+                'message' => 'Método no permitido'
+            ], 405);
+            break;
     }
 
-    // Crear producto
-    public function create() {
-        $query = "INSERT INTO " . $this->table_name . "
-                  (sku, name, description, selling_price, stock_current, stock_minimum, category_id, supplier_id, brand, model, barcode, weight, dimensions, is_active, date_created, date_updated)
-                  VALUES
-                  (:sku, :name, :description, :selling_price, :stock_current, :stock_minimum, :category_id, :supplier_id, :brand, :model, :barcode, :weight, :dimensions, :is_active, NOW(), NOW())";
-
-        $stmt = $this->conn->prepare($query);
-
-        // Limpieza de datos
-        $this->sku = htmlspecialchars(strip_tags($this->sku));
-        $this->name = htmlspecialchars(strip_tags($this->name));
-        $this->description = htmlspecialchars(strip_tags($this->description));
-        $this->selling_price = htmlspecialchars(strip_tags($this->selling_price));
-        $this->stock_current = htmlspecialchars(strip_tags($this->stock_current));
-        $this->stock_minimum = htmlspecialchars(strip_tags($this->stock_minimum));
-        $this->category_id = htmlspecialchars(strip_tags($this->category_id));
-        $this->supplier_id = htmlspecialchars(strip_tags($this->supplier_id));
-        $this->brand = htmlspecialchars(strip_tags($this->brand));
-        $this->model = htmlspecialchars(strip_tags($this->model));
-        $this->barcode = htmlspecialchars(strip_tags($this->barcode));
-        $this->weight = htmlspecialchars(strip_tags($this->weight));
-        $this->dimensions = htmlspecialchars(strip_tags($this->dimensions));
-        $this->is_active = htmlspecialchars(strip_tags($this->is_active));
-
-        // Enlazar parámetros
-        $stmt->bindParam(':sku', $this->sku);
-        $stmt->bindParam(':name', $this->name);
-        $stmt->bindParam(':description', $this->description);
-        $stmt->bindParam(':selling_price', $this->selling_price);
-        $stmt->bindParam(':stock_current', $this->stock_current);
-        $stmt->bindParam(':stock_minimum', $this->stock_minimum);
-        $stmt->bindParam(':category_id', $this->category_id);
-        $stmt->bindParam(':supplier_id', $this->supplier_id);
-        $stmt->bindParam(':brand', $this->brand);
-        $stmt->bindParam(':model', $this->model);
-        $stmt->bindParam(':barcode', $this->barcode);
-        $stmt->bindParam(':weight', $this->weight);
-        $stmt->bindParam(':dimensions', $this->dimensions);
-        $stmt->bindParam(':is_active', $this->is_active);
-
-        // Ejecutar
-        if ($stmt->execute()) {
-            return true;
-        }
-
-        // Mostrar error en caso de fallo
-        echo "Error al insertar: ";
-        print_r($stmt->errorInfo());
-        return false;
-    }
+} catch (Exception $e) {
+    error_log("API Error: " . $e->getMessage());
+    sendResponse([
+        'success' => false,
+        'message' => 'Error interno del servidor',
+        'error' => $e->getMessage()
+    ], 500);
 }
 ?>
