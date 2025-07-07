@@ -146,6 +146,84 @@
         </div>
     </section>
 
+    <!-- Product Detail Modal -->
+    <div id="productDetailModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden transform transition-all duration-300 scale-95 opacity-0" id="productModalContent">
+            <!-- Modal Header -->
+            <div class="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-4 flex items-center justify-between">
+                <h3 class="text-xl font-bold text-white flex items-center">
+                    <i class="fas fa-box mr-3"></i>
+                    Detalles del Producto
+                </h3>
+                <button onclick="hideProductDetailModal()" class="p-2 hover:bg-white/20 rounded-lg transition-colors duration-200 text-white">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="overflow-y-auto max-h-[calc(90vh-80px)]">
+                <div id="productDetailContent" class="p-6">
+                    <!-- Product details will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Product Modal -->
+    <div id="editProductModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md transform transition-all duration-300 scale-95 opacity-0" id="editModalContent">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-xl font-bold text-gray-900">Editar Producto</h3>
+                    <button onclick="hideEditProductModal()" class="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200">
+                        <i class="fas fa-times text-gray-500"></i>
+                    </button>
+                </div>
+            </div>
+            <form id="editProductForm" class="p-6 space-y-4">
+                <input type="hidden" id="editProductId">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Nombre del Producto</label>
+                    <input type="text" id="editProductName" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Descripción</label>
+                    <textarea id="editProductDescription" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"></textarea>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Precio</label>
+                        <input type="number" id="editProductPrice" step="0.01" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Stock</label>
+                        <input type="number" id="editProductStock" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Categoría</label>
+                    <select id="editProductCategory" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
+                        <option value="">Seleccionar categoría</option>
+                        <option value="Electrónica">Electrónica</option>
+                        <option value="Ropa">Ropa</option>
+                        <option value="Hogar">Hogar</option>
+                        <option value="Deportes">Deportes</option>
+                        <option value="Libros">Libros</option>
+                        <option value="Otros">Otros</option>
+                    </select>
+                </div>
+                <div class="flex gap-3 pt-4">
+                    <button type="button" onclick="hideEditProductModal()" class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200">
+                        Guardar Cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Notification -->
     <div id="notification" class="fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg transform translate-x-full transition-transform duration-300 z-50">
         <div class="flex items-center space-x-2">
@@ -457,8 +535,331 @@
             
             const stockStatus = stock === 0 ? 'text-red-600' : stock <= 5 ? 'text-yellow-600' : 'text-green-600';
             const stockText = stock === 0 ? 'Agotado' : stock <= 5 ? 'Stock Bajo' : 'Disponible';
+            const stockBgColor = stock === 0 ? 'bg-red-100' : stock <= 5 ? 'bg-yellow-100' : 'bg-green-100';
+            const stockTextColor = stock === 0 ? 'text-red-800' : stock <= 5 ? 'text-yellow-800' : 'text-green-800';
 
-            showNotification(`Mostrando detalles de: ${product.name}`, 'success');
+            // Create detailed product content
+            const detailContent = `
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Product Image Placeholder -->
+                    <div class="space-y-4">
+                        <div class="aspect-square bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center shadow-inner">
+                            <div class="text-center">
+                                <i class="fas fa-image text-6xl text-gray-400 mb-4"></i>
+                                <p class="text-gray-500 font-medium">Imagen del Producto</p>
+                                <p class="text-sm text-gray-400 mt-2">Próximamente</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Quick Actions -->
+                        <div class="grid grid-cols-2 gap-3">
+                            <button onclick="editProduct(${product.id}); hideProductDetailModal();" class="flex items-center justify-center px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium">
+                                <i class="fas fa-edit mr-2"></i>
+                                Editar
+                            </button>
+                            <button onclick="deleteProduct(${product.id}); hideProductDetailModal();" class="flex items-center justify-center px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200 font-medium">
+                                <i class="fas fa-trash mr-2"></i>
+                                Eliminar
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Product Information -->
+                    <div class="space-y-6">
+                        <!-- Product Title -->
+                        <div>
+                            <h2 class="text-3xl font-bold text-gray-900 mb-2">${product.name}</h2>
+                            <div class="flex flex-wrap gap-2 mb-4">
+                                <span class="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded-full">
+                                    <i class="fas fa-tag mr-1"></i>
+                                    ${category}
+                                </span>
+                                ${product.brand ? `
+                                    <span class="inline-flex items-center px-3 py-1 bg-gray-100 text-gray-700 text-sm font-medium rounded-full">
+                                        <i class="fas fa-building mr-1"></i>
+                                        ${product.brand}
+                                    </span>
+                                ` : ''}
+                                ${product.sku ? `
+                                    <span class="inline-flex items-center px-3 py-1 bg-purple-100 text-purple-700 text-sm font-medium rounded-full">
+                                        <i class="fas fa-barcode mr-1"></i>
+                                        ${product.sku}
+                                    </span>
+                                ` : ''}
+                            </div>
+                        </div>
+
+                        <!-- Price and Stock -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                            <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6">
+                                <div class="flex items-center mb-2">
+                                    <i class="fas fa-dollar-sign text-blue-600 text-lg mr-2"></i>
+                                    <h3 class="text-lg font-semibold text-blue-900">Precio</h3>
+                                </div>
+                                <p class="text-3xl font-bold text-blue-600">${price.toFixed(2)}</p>
+                                <p class="text-sm text-blue-700 mt-1">Precio de venta</p>
+                            </div>
+                            
+                            <div class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-6">
+                                <div class="flex items-center mb-2">
+                                    <i class="fas fa-warehouse text-gray-600 text-lg mr-2"></i>
+                                    <h3 class="text-lg font-semibold text-gray-900">Inventario</h3>
+                                </div>
+                                <div class="flex items-center space-x-3">
+                                    <span class="text-2xl font-bold text-gray-900">${stock}</span>
+                                    <span class="inline-flex items-center px-2 py-1 ${stockBgColor} ${stockTextColor} text-xs font-medium rounded-full">
+                                        ${stockText}
+                                    </span>
+                                </div>
+                                <p class="text-sm text-gray-600 mt-1">Unidades disponibles</p>
+                            </div>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="bg-gray-50 rounded-xl p-6">
+                            <div class="flex items-center mb-3">
+                                <i class="fas fa-align-left text-gray-600 text-lg mr-2"></i>
+                                <h3 class="text-lg font-semibold text-gray-900">Descripción</h3>
+                            </div>
+                            <p class="text-gray-700 leading-relaxed">
+                                ${product.description || 'No hay descripción disponible para este producto.'}
+                            </p>
+                        </div>
+
+                        <!-- Product Details -->
+                        <div class="bg-gray-50 rounded-xl p-6">
+                            <div class="flex items-center mb-4">
+                                <i class="fas fa-info-circle text-gray-600 text-lg mr-2"></i>
+                                <h3 class="text-lg font-semibold text-gray-900">Información Adicional</h3>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div class="flex justify-between items-center py-2 border-b border-gray-200">
+                                    <span class="text-gray-600 font-medium">ID del Producto:</span>
+                                    <span class="text-gray-900 font-semibold">#${product.id}</span>
+                                </div>
+                                ${product.model ? `
+                                    <div class="flex justify-between items-center py-2 border-b border-gray-200">
+                                        <span class="text-gray-600 font-medium">Modelo:</span>
+                                        <span class="text-gray-900 font-semibold">${product.model}</span>
+                                    </div>
+                                ` : ''}
+                                <div class="flex justify-between items-center py-2 border-b border-gray-200">
+                                    <span class="text-gray-600 font-medium">Fecha de Registro:</span>
+                                    <span class="text-gray-900 font-semibold">${new Date(product.date_added || product.date_created).toLocaleDateString('es-ES')}</span>
+                                </div>
+                                ${product.date_updated ? `
+                                    <div class="flex justify-between items-center py-2 border-b border-gray-200">
+                                        <span class="text-gray-600 font-medium">Última Actualización:</span>
+                                        <span class="text-gray-900 font-semibold">${new Date(product.date_updated).toLocaleDateString('es-ES')}</span>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+
+                        <!-- Stock Alert -->
+                        ${stock <= 5 ? `
+                            <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+                                <div class="flex items-center">
+                                    <i class="fas fa-exclamation-triangle text-yellow-600 mr-3"></i>
+                                    <div>
+                                        <h4 class="font-semibold text-yellow-800">
+                                            ${stock === 0 ? 'Producto Agotado' : 'Stock Bajo'}
+                                        </h4>
+                                        <p class="text-yellow-700 text-sm">
+                                            ${stock === 0 
+                                                ? 'Este producto no tiene unidades disponibles en el inventario.' 
+                                                : 'Este producto tiene pocas unidades disponibles. Considera reabastecer pronto.'
+                                            }
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+
+                <!-- Mobile Actions (visible only on small screens) -->
+                <div class="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-3 lg:hidden">
+                    <button onclick="editProduct(${product.id}); hideProductDetailModal();" class="flex items-center justify-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium">
+                        <i class="fas fa-edit mr-2"></i>
+                        Editar Producto
+                    </button>
+                    <button onclick="deleteProduct(${product.id}); hideProductDetailModal();" class="flex items-center justify-center px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200 font-medium">
+                        <i class="fas fa-trash mr-2"></i>
+                        Eliminar Producto
+                    </button>
+                </div>
+            `;
+
+            // Insert content and show modal
+            document.getElementById('productDetailContent').innerHTML = detailContent;
+            showProductDetailModal();
+        }
+
+        // Show product detail modal
+        function showProductDetailModal() {
+            const modal = document.getElementById('productDetailModal');
+            const content = document.getElementById('productModalContent');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        // Hide product detail modal
+        function hideProductDetailModal() {
+            const modal = document.getElementById('productDetailModal');
+            const content = document.getElementById('productModalContent');
+            content.classList.add('scale-95', 'opacity-0');
+            content.classList.remove('scale-100', 'opacity-100');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        // Edit product
+        function editProduct(productId) {
+            const product = products.find(p => p.id == productId);
+            if (!product) return;
+
+            document.getElementById('editProductId').value = product.id;
+            document.getElementById('editProductName').value = product.name;
+            document.getElementById('editProductDescription').value = product.description || '';
+            document.getElementById('editProductPrice').value = parseFloat(product.price || product.selling_price || 0);
+            document.getElementById('editProductStock').value = parseInt(product.stock || product.stock_current || 0);
+            document.getElementById('editProductCategory').value = product.category || product.category_name || '';
+
+            showEditProductModal();
+        }
+
+        // Show edit product modal
+        function showEditProductModal() {
+            const modal = document.getElementById('editProductModal');
+            const content = document.getElementById('editModalContent');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        // Hide edit product modal
+        function hideEditProductModal() {
+            const modal = document.getElementById('editProductModal');
+            const content = document.getElementById('editModalContent');
+            content.classList.add('scale-95', 'opacity-0');
+            content.classList.remove('scale-100', 'opacity-100');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                document.getElementById('editProductForm').reset();
+            }, 300);
+        }
+
+        // Edit product form handler
+        document.getElementById('editProductForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const productId = parseInt(document.getElementById('editProductId').value);
+            const productData = {
+                id: productId,
+                name: document.getElementById('editProductName').value,
+                description: document.getElementById('editProductDescription').value,
+                price: parseFloat(document.getElementById('editProductPrice').value),
+                stock: parseInt(document.getElementById('editProductStock').value),
+                category: document.getElementById('editProductCategory').value
+            };
+
+            try {
+                // Try to update via API first
+                const response = await fetch(API_BASE_URL, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(productData)
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success) {
+                        showNotification('Producto actualizado exitosamente');
+                        loadProducts(); // Reload products
+                    } else {
+                        throw new Error(result.message || 'Error al actualizar producto');
+                    }
+                } else {
+                    throw new Error('Error de servidor');
+                }
+            } catch (error) {
+                console.error('Error updating product via API:', error);
+                
+                // Fallback to localStorage
+                const productIndex = products.findIndex(p => p.id === productId);
+                if (productIndex !== -1) {
+                    products[productIndex] = {
+                        ...products[productIndex],
+                        name: productData.name,
+                        description: productData.description,
+                        price: productData.price,
+                        stock: productData.stock,
+                        category: productData.category,
+                        date_updated: new Date().toISOString()
+                    };
+
+                    localStorage.setItem('products', JSON.stringify(products));
+                    showNotification('Producto actualizado exitosamente (modo offline)');
+                    
+                    // Update filtered products
+                    filteredProducts = [...products];
+                    renderProducts();
+                    updateStats();
+                }
+            }
+            
+            hideEditProductModal();
+        });
+
+        // Delete product
+        async function deleteProduct(productId) {
+            if (!confirm('¿Estás seguro de que deseas eliminar este producto? Esta acción no se puede deshacer.')) {
+                return;
+            }
+
+            try {
+                // Try to delete via API first
+                const response = await fetch(API_BASE_URL, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ id: productId })
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success) {
+                        showNotification('Producto eliminado exitosamente');
+                        loadProducts(); // Reload products
+                    } else {
+                        throw new Error(result.message || 'Error al eliminar producto');
+                    }
+                } else {
+                    throw new Error('Error de servidor');
+                }
+            } catch (error) {
+                console.error('Error deleting product via API:', error);
+                
+                // Fallback to localStorage
+                products = products.filter(p => p.id !== productId);
+                localStorage.setItem('products', JSON.stringify(products));
+                showNotification('Producto eliminado exitosamente (modo offline)');
+                
+                // Update filtered products
+                filteredProducts = [...products];
+                renderProducts();
+                updateStats();
+            }
         }
 
         // Mobile menu toggle
@@ -494,6 +895,27 @@
                 notification.classList.add('translate-x-full');
             }, 4000);
         }
+
+        // Close modals when clicking outside
+        document.getElementById('productDetailModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                hideProductDetailModal();
+            }
+        });
+
+        document.getElementById('editProductModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                hideEditProductModal();
+            }
+        });
+
+        // Keyboard navigation for modals
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                hideProductDetailModal();
+                hideEditProductModal();
+            }
+        });
     </script>
 </body>
 </html>
