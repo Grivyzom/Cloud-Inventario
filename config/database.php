@@ -13,7 +13,7 @@ class Database {
     private $host = 'localhost';
     private $db_name = 'cloud_inventario';
     private $username = 'root';
-    private $password = '';  // Ajusta según tu configuración
+    private $password = '';  // Cambia si tienes contraseña
     private $conn;
 
     public function getConnection() {
